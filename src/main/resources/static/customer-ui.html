@@ -40,18 +40,25 @@
                 phone: document.getElementById('phone').value
             };
 
-            try {
-                const response = await fetch('http://localhost:8080/customers', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-
-                const text = await response.text();
-                responseBox.textContent = `Status: ${response.status}\n\n${text}`;
-            } catch (error) {
-                responseBox.textContent = `Error: ${error}`;
-            }
+            fetch('http://service-customer-mdm:8080/customers', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+              })
+              .then(async response => {
+                if (response.ok) {
+                  const result = await response.json();
+                  document.getElementById('result').innerText = '✅ customer created: ' + JSON.stringify(result);
+                } else {
+                  const error = await response.text();
+                  document.getElementById('result').innerText = '❌ Error: ' + error;
+                }
+              })
+              .catch(error => {
+                document.getElementById('result').innerText = '❌ Network error: ' + error;
+              });
         });
     </script>
 </body>
