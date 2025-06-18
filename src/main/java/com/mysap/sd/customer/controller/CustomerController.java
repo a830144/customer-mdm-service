@@ -28,6 +28,9 @@ public class CustomerController {
         if (repository.existsByEmail(customer.getEmail())) {
             return ResponseEntity.badRequest().body("Email already exists.");
         }
+        if (repository.existsById(customer.getId())) {
+            return ResponseEntity.badRequest().body("Tax ID already exists.");
+        }
         Customer saved = repository.save(customer);
         return ResponseEntity.status(201).body(saved);
     }
