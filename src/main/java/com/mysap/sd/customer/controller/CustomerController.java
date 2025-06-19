@@ -1,5 +1,8 @@
 package com.mysap.sd.customer.controller;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -15,6 +18,8 @@ import io.swagger.v3.oas.annotations.Operation;
 @RestController
 @RequestMapping("/customers")
 public class CustomerController {
+	
+	private static final Logger log = LoggerFactory.getLogger(CustomerController.class);
 
     private final CustomerRepository repository;
 
@@ -32,6 +37,8 @@ public class CustomerController {
             return ResponseEntity.badRequest().body("Tax ID already exists.");
         }
         Customer saved = repository.save(customer);
+        log.info("customer created: {}", customer.getId());
+        log.warn("Payment delay for {}", customer.getId());
         return ResponseEntity.status(201).body(saved);
     }
     

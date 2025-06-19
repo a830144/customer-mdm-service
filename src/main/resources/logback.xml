@@ -1,0 +1,15 @@
+<configuration>
+    <appender name="splunk" class="com.splunk.logging.HttpEventCollectorLogbackAppender">
+        <url>http://splunk:8088</url>
+        <token>cbe55ba0-7fd9-435c-aee3-af49f07761c0</token>
+        <index>main</index>
+        <sourcetype>spring-boot</sourcetype>
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{36} - %msg%n</pattern>
+        </layout>
+    </appender>
+
+    <root level="INFO">
+        <appender-ref ref="splunk"/>
+    </root>
+</configuration>
