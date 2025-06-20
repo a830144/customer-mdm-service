@@ -18,6 +18,17 @@ public class Customer {
     private String address;
 
     private String phone;
+    
+    @Column(name = "active")
+    private boolean active = true;
+
+	public boolean isActive() {
+		return active;
+	}
+
+	public void setActive(boolean active) {
+		this.active = active;
+	}
 
 	public Long getId() {
 		return id;
