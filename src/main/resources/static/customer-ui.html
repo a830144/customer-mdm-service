@@ -2,12 +2,24 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Customer UI</title>
+    <title>Customer Manager</title>
+    <style>
+        table, th, td {
+            border: 1px solid gray;
+            border-collapse: collapse;
+            padding: 6px;
+        }
+        table {
+            margin-top: 20px;
+            width: 100%;
+        }
+    </style>
 </head>
 <body>
-    <h1>Customer Creation</h1>
+    <h2>Customer Form</h2>
 
     <form id="customerForm">
+        <input type="hidden" id="customerId" />
         <label>Name:</label>
         <input type="text" id="name" required><br><br>
 
@@ -20,17 +32,75 @@
         <label>Phone:</label>
         <input type="text" id="phone"><br><br>
 
-        <button type="submit">Create Customer</button>
+        <button type="submit">Create / Update</button>
+        <button type="button" id="deactivateBtn">Deactivate</button>
     </form>
-    
+
     <p id="result"></p>
+
+    <h3>Customer List</h3>
+    <table id="customerTable">
+        <thead>
+            <tr>
+                <th>Select</th>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Address</th>
+                <th>Phone</th>
+                <th>Active</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
 
     <script>
         const form = document.getElementById('customerForm');
-        const responseBox = document.getElementById('responseBox');
+        const result = document.getElementById('result');
+        const tableBody = document.querySelector('#customerTable tbody');
+        const deactivateBtn = document.getElementById('deactivateBtn');
 
-        form.addEventListener('submit', async function (e) {
+        function fetchAndRender() {
+            fetch('http://localhost:8081/customers')
+                .then(res => res.json())
+                .then(data => {
+                    tableBody.innerHTML = '';
+                    data.forEach(c => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td><input type="checkbox" class="select-customer" data-id="${c.id}" /></td>
+                            <td>${c.id}</td>
+                            <td>${c.name}</td>
+                            <td>${c.email}</td>
+                            <td>${c.address || ''}</td>
+                            <td>${c.phone || ''}</td>
+                            <td>${c.active}</td>
+                        `;
+                        tableBody.appendChild(row);
+                    });
+
+                    document.querySelectorAll('.select-customer').forEach(box => {
+                        box.addEventListener('change', function () {
+                            const row = this.closest('tr');
+                            const [id, name, email, address, phone] = Array.from(row.children).slice(1, 6).map(td => td.innerText);
+
+                            document.getElementById('customerId').value = id;
+                            document.getElementById('name').value = name;
+                            document.getElementById('email').value = email;
+                            document.getElementById('address').value = address;
+                            document.getElementById('phone').value = phone;
+
+                            document.querySelectorAll('.select-customer').forEach(b => b !== this && (b.checked = false));
+                        });
+                    });
+                });
+        }
+
+        form.addEventListener('submit', function (e) {
             e.preventDefault();
+            const id = document.getElementById('customerId').value;
+            const method = id ? 'PUT' : 'POST';
+            const url = id ? `http://localhost:8081/customers/${id}` : 'http://localhost:8081/customers';
 
             const data = {
                 name: document.getElementById('name').value,
@@ -39,26 +109,33 @@
                 phone: document.getElementById('phone').value
             };
 
-            fetch('http://localhost:8081/customers', {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json'
-                },
+            fetch(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
-              })
-              .then(async response => {
-                if (response.ok) {
-                  const result = await response.json();
-                  document.getElementById('result').innerText = '✅ customer created: ' + JSON.stringify(result);
-                } else {
-                  const error = await response.text();
-                  document.getElementById('result').innerText = '❌ Error: ' + error;
-                }
-              })
-              .catch(error => {
-                document.getElementById('result').innerText = '❌ Network error: ' + error;
-              });
+            })
+                .then(async res => {
+                    const msg = await res.text();
+                    result.innerText = res.ok ? `✅ Success: ${msg}` : `❌ Error: ${msg}`;
+                    fetchAndRender();
+                    form.reset();
+                })
+                .catch(err => result.innerText = `❌ Network error: ${err}`);
         });
+
+        deactivateBtn.addEventListener('click', function () {
+            const id = document.getElementById('customerId').value;
+            if (!id) return alert('Select a customer to deactivate.');
+            fetch(`http://localhost:8081/customers/${id}/deactivate`, { method: 'PATCH' })
+                .then(async res => {
+                    const msg = await res.text();
+                    result.innerText = res.ok ? `🟡 Deactivated: ${msg}` : `❌ Error: ${msg}`;
+                    fetchAndRender();
+                    form.reset();
+                });
+        });
+
+        fetchAndRender();
     </script>
 </body>
 </html>
