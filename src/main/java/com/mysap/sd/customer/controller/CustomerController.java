@@ -3,6 +3,7 @@ package com.mysap.sd.customer.controller;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -42,6 +43,7 @@ public class CustomerController {
         return ResponseEntity.status(201).body(saved);
     }
     
+    @CrossOrigin(origins = "*") // or specific origin
     @PutMapping("/{id}")
     public ResponseEntity<?> updateCustomer(@PathVariable Long id, @RequestBody Customer update) {
         return repository.findById(id)
@@ -67,6 +69,7 @@ public class CustomerController {
             .orElse(ResponseEntity.notFound().build());
     }
     
+    @CrossOrigin(origins = "*") // or specific origin
     @GetMapping
     @Operation(summary = "Get ALL customers")
     public ResponseEntity<?> getAll() {
