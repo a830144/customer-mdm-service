@@ -18,6 +18,10 @@ import com.mysap.sd.customer.repository.CustomerRepository;
 
 import io.swagger.v3.oas.annotations.Operation;
 
+
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+
 @RestController
 @RequestMapping("/customers")
 public class CustomerController {
@@ -25,9 +29,14 @@ public class CustomerController {
 	private static final Logger log = LoggerFactory.getLogger(CustomerController.class);
 
     private final CustomerRepository repository;
+    private final Counter customRequestsCounter;
 
-    public CustomerController(CustomerRepository repository) {
+    
+    public CustomerController(CustomerRepository repository, MeterRegistry registry) {
         this.repository = repository;
+        this.customRequestsCounter = Counter.builder("custom_requests_total")
+                .description("Total custom requests handled in controller")
+                .register(registry);
     }
 
     @PostMapping
@@ -73,6 +82,7 @@ public class CustomerController {
     @GetMapping
     @Operation(summary = "Get ALL customers")
     public ResponseEntity<?> getAll() {
+    	customRequestsCounter.increment();  
         return ResponseEntity.ok(repository.findAll());
     }
 }
